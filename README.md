@@ -1,2 +1,2 @@
-phantomwarc
+PhantomWARC
 ===========
