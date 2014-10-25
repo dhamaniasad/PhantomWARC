@@ -1,0 +1,7 @@
+venv
+*.pyc
+*.log
+test.py
+warcprox-ca
+*.pem
+warcs
