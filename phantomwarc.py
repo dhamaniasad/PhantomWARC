@@ -2,12 +2,28 @@ import subprocess
 import socket
 import os
 import errno
+import random
+import string
+import time
 from selenium import webdriver
 from selenium.webdriver.common.proxy import ProxyType
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-BASE_DIR = os.getcwd()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WARC_NAME = ''.join(random.choice(string.ascii_uppercase)
+                    for i in range(10))
+RAND_STR = WARC_NAME
+WARC_NAME = WARC_NAME + ".warc.gz"
 WARC_DIR = BASE_DIR + "/warc/"
-CERT_PATH = BASE_DIR + "warcprox-ca"
+WARC_NAME = WARC_DIR + WARC_NAME
+CDX_NAME = WARC_DIR + RAND_STR + ".cdx"
+
+
+def getfreesocket():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(('', 0))
+    proxy_port = sock.getsockname()[1]
+    sock.close()
+    return proxy_port
 
 
 def make_sure_path_exists(path):
@@ -16,23 +32,23 @@ def make_sure_path_exists(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
-make_sure_path_exists(WARC_DIR)
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('', 0))
-
-warcprox_port = sock.getsockname()[1]
-sock.close()
-PROX_ADDR = "127.0.0.1:%s" % warcprox_port
 
 
-def initiate_warcprox(port):
-    subprocess.call(["warcprox", "-p %s" % (warcprox_port), "-n warc", "-z",
-                    "-d%s" % (WARC_DIR)])
-initiate_warcprox(warcprox_port)
+def init_proxy(proxy_port):
+    os.chdir("WarcMITMProxy")
+    subprocess.Popen(["python", "warcmitmproxy.py", "-p %s" % proxy_port,
+                     "-f%s" % WARC_NAME])
 
 
-def start_browser(url):
+def cdx_generator():
+    subprocess.Popen(["cdx-indexer", "%s" % CDX_NAME, "%s" % WARC_NAME])
+
+
+def init_browser(url):
+    make_sure_path_exists(WARC_DIR)
+    proxy_port = getfreesocket()
+    PROX_ADDR = "127.0.0.1:%s" % proxy_port
+    init_proxy(proxy_port)
     desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
     desired_capabilities["proxy"] = {"proxyType": ProxyType.MANUAL,
                                      "sslProxy": PROX_ADDR,
@@ -41,9 +57,10 @@ def start_browser(url):
         desired_capabilities=desired_capabilities,
         service_args=[
             "--proxy=%s" % PROX_ADDR,
-            "--ssl-certificates-path=%s" % CERT_PATH,
             "--ignore-ssl-errors=true"])
     browser.implicitly_wait(2)
     browser.set_page_load_timeout(30)
-    return browser
-start_browser("https://www.google.com")
+    browser.get(url)
+    time.sleep(4)
+    cdx_generator()
+init_browser("http://ipv4.icanhazip.com")
