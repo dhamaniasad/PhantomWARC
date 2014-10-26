@@ -37,7 +37,7 @@ def make_sure_path_exists(path):
 def init_proxy(proxy_port):
     os.chdir("WarcMITMProxy")
     subprocess.Popen(["python", "warcmitmproxy.py", "-p %s" % proxy_port,
-                     "-f%s" % WARC_NAME])
+                      "-f%s" % WARC_NAME])
 
 
 def cdx_generator():
@@ -53,6 +53,8 @@ def init_browser(url):
     desired_capabilities["proxy"] = {"proxyType": ProxyType.MANUAL,
                                      "sslProxy": PROX_ADDR,
                                      "httpProxy": PROX_ADDR}
+    desired_capabilities["phantomjs.page.settings.userAgent"] = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/37.0.2062.120 Chrome/37.0.2062.120 Safari/537.36")
     browser = webdriver.PhantomJS(
         desired_capabilities=desired_capabilities,
         service_args=[
@@ -63,4 +65,3 @@ def init_browser(url):
     browser.get(url)
     time.sleep(4)
     cdx_generator()
-init_browser("http://ipv4.icanhazip.com")
