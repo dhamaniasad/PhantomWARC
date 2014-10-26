@@ -5,3 +5,5 @@ test.py
 warcprox-ca
 *.pem
 warcs
+*.warc.gz
+*.db
