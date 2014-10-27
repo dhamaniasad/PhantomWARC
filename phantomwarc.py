@@ -49,13 +49,14 @@ def cdx_generator():
 def upload_to_ia():
     item = get_item(WARC_FILE)
     md = dict(mediatype='warc', creator='PhantomWARC')
-    item.upload(WARC_NAME, metadata=md, access_key='', secret_key='')
-    item.upload(CDX_NAME)
-    self.IAFILEPATH = "https://archive.org/details/%s" % WARC_FILE
-    print "WARC and CDX files uploaded to the Internet Archive as %s" % IAFILEPATH
+    cdxmd = dict(mediatype='cdx', creator='PhantomWARC')
+    item.upload(WARC_NAME, metadata=md, access_key=os.environ['IAS3_ACCESS_KEY'], secret_key=os.environ['IAS3_SECRET_KEY'])
+    item.upload(CDX_NAME, metadata=cdxmd, access_key=os.environ['IAS3_ACCESS_KEY'], secret_key=os.environ['IAS3_SECRET_KEY'])
+    IAURL = "https://archive.org/details/%s" % WARC_FILE
+    print "WARC and CDX files uploaded to the Internet Archive as %s" % IAURL
 
 
-def init_browser(url, ia):
+def init_browser(url, ia=None):
     make_sure_path_exists(WARC_DIR)
     proxy_port = getfreesocket()
     PROX_ADDR = "127.0.0.1:%s" % proxy_port
@@ -80,4 +81,3 @@ def init_browser(url, ia):
     print "CDX file generated as %s" % CDX_NAME
     if ia is True:
         upload_to_ia()
-# init_browser("https://www.archive.org/", ia=True)
