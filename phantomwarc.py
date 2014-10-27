@@ -5,6 +5,7 @@ import errno
 import random
 import string
 import time
+from internetarchive import get_item
 from selenium import webdriver
 from selenium.webdriver.common.proxy import ProxyType
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -13,6 +14,7 @@ WARC_NAME = ''.join(random.choice(string.ascii_uppercase)
                     for i in range(10))
 RAND_STR = WARC_NAME
 WARC_NAME = WARC_NAME + ".warc.gz"
+WARC_FILE = WARC_NAME
 WARC_DIR = BASE_DIR + "/warc/"
 WARC_NAME = WARC_DIR + WARC_NAME
 CDX_NAME = WARC_DIR + RAND_STR + ".cdx"
@@ -44,7 +46,16 @@ def cdx_generator():
     subprocess.Popen(["cdx-indexer", "%s" % CDX_NAME, "%s" % WARC_NAME])
 
 
-def init_browser(url):
+def upload_to_ia():
+    item = get_item(WARC_FILE)
+    md = dict(mediatype='warc', creator='PhantomWARC')
+    item.upload(WARC_NAME, metadata=md, access_key='', secret_key='')
+    item.upload(CDX_NAME)
+    self.IAFILEPATH = "https://archive.org/details/%s" % WARC_FILE
+    print "WARC and CDX files uploaded to the Internet Archive as %s" % IAFILEPATH
+
+
+def init_browser(url, ia):
     make_sure_path_exists(WARC_DIR)
     proxy_port = getfreesocket()
     PROX_ADDR = "127.0.0.1:%s" % proxy_port
@@ -65,3 +76,8 @@ def init_browser(url):
     browser.get(url)
     time.sleep(4)
     cdx_generator()
+    print "WARC file generated as %s" % WARC_NAME
+    print "CDX file generated as %s" % CDX_NAME
+    if ia is True:
+        upload_to_ia()
+# init_browser("https://www.archive.org/", ia=True)
