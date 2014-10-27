@@ -12,5 +12,14 @@ pip install -r requirements.txt
 ```
 import phantomwarc
 
-phantomwarc.init_browser("http://www.google.com")
+phantomwarc.init_browser("http://www.google.com", ia=True)
+```
+
+##### Internet Archive Uploading
+```
+Get your Internet Archive S3-Like API Keys from: 
+https://archive.org/account/s3.php
+Set the Access Key and Secret Key as environment variables like so:
+export IAS3_ACCESS_KEY=''
+export IAS3_SECRET_KEY=''
 ```
