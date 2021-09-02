@@ -1,4 +1,4 @@
 mitmproxy==0.10.1
-pywb==0.6.3
+pywb==2.6.0
 selenium==2.44.0
 internetarchive==0.7.5
